@@ -1,12 +1,18 @@
 #include <fcntl.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
-char *serverIP, fileBuffer;
-u_short serverPort;
-u_int networkFileSize, networkPrintableCharsCount;
+char *filePath, *serverIP, *fileBuffer;
+uint16_t serverPort;
+uint32_t networkFileSize, networkPrintableCharsCount, networkServerIP;
 struct sockaddr_in serv_addr;
-char *filePath;
 int filefd, sockfd, fileSize, printableCharsCount;
 
 int main(int argc, char *argv[]) {
@@ -32,7 +38,7 @@ int main(int argc, char *argv[]) {
 
     // Calculating file size
     struct stat st; 
-    retVal = fstat(filefd, &st)
+    retVal = fstat(filefd, &st);
     if (retVal != 0) {
         perror("Can't read file size with fstat");
         exit(1);
@@ -65,7 +71,7 @@ int main(int argc, char *argv[]) {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(serverPort);
     // TODO understand if need binary
-    serv_addr.sin_addr.s_addr = inet_pton(serverIP);
+    serv_addr.sin_addr.s_addr = inet_pton(AF_INET, serverIP, &networkServerIP);
 
     // Connecting to server
     retVal = connect(sockfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
@@ -76,22 +82,22 @@ int main(int argc, char *argv[]) {
 
     // Sending file size
     networkFileSize = htonl(fileSize);
-    retVal = write(sockfd, networkFileSize, sizeof(uint));
-    if (retVal != sizeof(uint)) {
+    retVal = write(sockfd, &networkFileSize, sizeof(uint32_t));
+    if (retVal != sizeof(uint32_t)) {
         perror("Couldn't write file size to socket");
         exit(1);
     }
 
     // Sending file content
-    retVal = write(sockfd, fileBuffer, fileSize);
+    retVal = write(sockfd, &fileBuffer, fileSize);
     if (retVal != fileSize) {
         perror("Couldn't write all file content to socket");
         exit(1);
     }
     
     // Recieving number of printable characters
-    retVal = read(sockfd, networkPrintableCharsCount, sizeof(uint));
-    if (retVal != sizeof(uint)) {
+    retVal = read(sockfd, &networkPrintableCharsCount, sizeof(uint32_t));
+    if (retVal != sizeof(uint32_t)) {
         perror("Couldn't read number of printable characters from socket");
         exit(1);
     }
