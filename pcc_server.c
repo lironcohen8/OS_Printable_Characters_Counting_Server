@@ -19,6 +19,27 @@ int listenfd, connfd, fileSize, printableCounter;
 char *fileBuffer;
 socklen_t addrsize = sizeof(struct sockaddr_in);
 
+// Preparing SIGINT handler
+int prepare_handler(void) {
+    struct sigaction sigchld_action; // struct of sigaction to pass to registration
+	memset(&sigchld_action, 0, sizeof(sigchld_action)); // setting sigaction mem to 0
+	sigchld_action.sa_sigaction = sigint_handler; // setting handler to my function
+	sigchld_action.sa_flags = SA_RESTART | SA_SIGINFO; // including the info
+	if (sigaction(SIGINT, &sigchld_action, NULL) != 0) { // registering handler
+		perror("Error in SIGINT handler registration");
+		return 1;
+	}
+	return 0;
+}
+
+// handler for SIGINT
+void sigint_handler(int signum, siginfo_t* info, void *ptr) { 
+	int i;
+    for (i = 0; i < NUM_OF_PRINTABLE_CHARS; i++) {
+        printf("char '%c' : %u times\n", i+32, pcc_total[i]);
+    }
+    exit(0);
+}
 
 int main(int argc, char *argv[]) {
     int retVal, i, charValue;
@@ -39,6 +60,14 @@ int main(int argc, char *argv[]) {
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
     if (listenfd < 0) {
         perror("Can't create socket");
+        exit(1);
+    }
+
+    // Enabling port reuse
+    // TODO understand if needed in connfd
+    retVal = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int);
+    if (retVal < 0) {
+        perror("setsockopt(SO_REUSEADDR) failed");
         exit(1);
     }
 
@@ -113,5 +142,12 @@ int main(int argc, char *argv[]) {
         for (i = 0; i < fileSize; i++) {
             charValue = fileBuffer[i];
             pcc_total[charValue-32]++;
+        }
+
+        // Closing connection socket
+        retVal = close(connfd);
+        if (retVal != 0) {
+            perror("Can't close connection socket");
+            exit(1);
         }
 }
