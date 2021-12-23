@@ -37,11 +37,11 @@ void sigint_handler(int signum, siginfo_t* info, void *ptr) {
 
 // Preparing SIGINT handler
 int prepare_handler(void) {
-    struct sigaction sigchld_action; // struct of sigaction to pass to registration
-	memset(&sigchld_action, 0, sizeof(sigchld_action)); // setting sigaction mem to 0
-	sigchld_action.sa_sigaction = sigint_handler; // setting handler to my function
-	sigchld_action.sa_flags = SA_RESTART | SA_SIGINFO; // including the info
-	if (sigaction(SIGINT, &sigchld_action, NULL) != 0) { // registering handler
+    struct sigaction sigint_action; // struct of sigaction to pass to registration
+	memset(&sigint_action, 0, sizeof(sigint_action)); // setting sigaction mem to 0
+	sigint_action.sa_sigaction = sigint_handler; // setting handler to my function
+	sigint_action.sa_flags = SA_RESTART | SA_SIGINFO; // including the info
+	if (sigaction(SIGINT, &sigint_action, NULL) != 0) { // registering handler
 		perror("Error in SIGINT handler registration");
 		return 1;
 	}
