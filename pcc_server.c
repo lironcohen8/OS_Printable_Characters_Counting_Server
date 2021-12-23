@@ -22,9 +22,15 @@ socklen_t addrsize = sizeof(struct sockaddr_in);
 
 // handler for SIGINT
 void sigint_handler(int signum, siginfo_t* info, void *ptr) { 
-	int i;
+	int i, retVal;
     for (i = 0; i < NUM_OF_PRINTABLE_CHARS; i++) {
         printf("char '%c' : %u times\n", i+32, pcc_total[i]);
+    }
+    // Closing listening socket
+    retVal = close(listenfd);
+    if (retVal != 0) {
+        perror("Can't close listening socket");
+        exit(1);
     }
     exit(0);
 }
@@ -44,7 +50,7 @@ int prepare_handler(void) {
 
 int main(int argc, char *argv[]) {
     int retVal, i, charValue;
-
+    
     // Checking number of arguments
     if (argc != 2) {
         perror("Number of cmd args is not 1");
@@ -56,6 +62,12 @@ int main(int argc, char *argv[]) {
 
     // Initializing pcc_total
     memset(&pcc_total, 0, sizeof(uint32_t)*NUM_OF_PRINTABLE_CHARS);
+
+    // Preparing SIGINT handler
+    retVal = prepare_handler();
+    if (retVal != 0) {
+        perror("Can't prepare SIGINT handler");
+    }
 
     // Creating socket 
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
