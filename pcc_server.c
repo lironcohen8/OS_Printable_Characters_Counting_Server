@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <signal.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -19,6 +20,15 @@ int listenfd, connfd, fileSize, printableCounter;
 char *fileBuffer;
 socklen_t addrsize = sizeof(struct sockaddr_in);
 
+// handler for SIGINT
+void sigint_handler(int signum, siginfo_t* info, void *ptr) { 
+	int i;
+    for (i = 0; i < NUM_OF_PRINTABLE_CHARS; i++) {
+        printf("char '%c' : %u times\n", i+32, pcc_total[i]);
+    }
+    exit(0);
+}
+
 // Preparing SIGINT handler
 int prepare_handler(void) {
     struct sigaction sigchld_action; // struct of sigaction to pass to registration
@@ -30,15 +40,6 @@ int prepare_handler(void) {
 		return 1;
 	}
 	return 0;
-}
-
-// handler for SIGINT
-void sigint_handler(int signum, siginfo_t* info, void *ptr) { 
-	int i;
-    for (i = 0; i < NUM_OF_PRINTABLE_CHARS; i++) {
-        printf("char '%c' : %u times\n", i+32, pcc_total[i]);
-    }
-    exit(0);
 }
 
 int main(int argc, char *argv[]) {
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]) {
 
     // Enabling port reuse
     // TODO understand if needed in connfd
-    retVal = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int);
+    retVal = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
     if (retVal < 0) {
         perror("setsockopt(SO_REUSEADDR) failed");
         exit(1);
@@ -125,7 +126,7 @@ int main(int argc, char *argv[]) {
         printableCounter = 0;
         for (i = 0; i < fileSize; i++) {
             charValue = fileBuffer[i];
-            if ((charValue >= 32) and (charValue <= 126)) {
+            if ((charValue >= 32) && (charValue <= 126)) {
                 printableCounter++;
             }
         }
@@ -150,4 +151,5 @@ int main(int argc, char *argv[]) {
             perror("Can't close connection socket");
             exit(1);
         }
+    }
 }
