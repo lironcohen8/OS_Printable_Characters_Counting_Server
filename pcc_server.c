@@ -106,6 +106,7 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         // Accepting a connection
+        printf("Server accept\n");
         connfd = accept(listenfd, (struct sockaddr*) &client_addr, &addrsize);
         if (connfd < 0) {
             perror("Accept failed");
@@ -113,6 +114,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Reading file size
+        printf("Server read file size\n");
         retVal = read(connfd, &fileSize, sizeof(uint32_t));
         if (retVal != sizeof(uint32_t)) {
             perror("Couldn't read file size from socket");
@@ -121,6 +123,7 @@ int main(int argc, char *argv[]) {
         fileSize = ntohl(fileSize);
 
         // Creating buffer for file content
+        printf("Server creating file buffer\n");
         fileBuffer = (char *)calloc(1,fileSize+1);
         if (fileBuffer == NULL) {
             perror("Can't allocate memory for buffer");
@@ -128,6 +131,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Reading file content
+        printf("Server read file content\n");
         retVal = read(connfd, &fileBuffer, fileSize);
         if (retVal != fileSize) {
             perror("Couldn't read all file content from socket");
@@ -135,6 +139,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Calculating printable characters number
+        printf("Server calculate result\n");
         printableCounter = 0;
         for (i = 0; i < fileSize; i++) {
             charValue = fileBuffer[i];
@@ -145,6 +150,7 @@ int main(int argc, char *argv[]) {
 
         // Writing result to client
         // TODO understand when to convert to network order
+        printf("Server writes result %d to client\n", printableCounter);
         retVal = write(connfd, &printableCounter, sizeof(uint32_t));
         if (retVal != sizeof(uint32_t)) {
             perror("Couldn't write counter result to socket");
@@ -152,12 +158,14 @@ int main(int argc, char *argv[]) {
         }
 
         // Updating pcc_total
+        printf("Server updates pcc_total\n");
         for (i = 0; i < fileSize; i++) {
             charValue = fileBuffer[i];
             pcc_total[charValue-32]++;
         }
 
         // Closing connection socket
+        printf("Server closes connection fd\n");
         retVal = close(connfd);
         if (retVal != 0) {
             perror("Can't close connection socket");
