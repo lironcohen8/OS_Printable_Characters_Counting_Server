@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Listening to socket
-    retVal = listen(serverPort, LISTEN_QUEUE_SIZE);
+    retVal = listen(listenfd, LISTEN_QUEUE_SIZE);
     if (retVal != 0) {
         perror("Listen failed");
         exit(1);
