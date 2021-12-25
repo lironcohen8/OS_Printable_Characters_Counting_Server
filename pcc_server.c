@@ -14,7 +14,7 @@
 #define LISTEN_QUEUE_SIZE        (10)
 
 uint16_t serverPort;
-uint32_t pcc_total[NUM_OF_PRINTABLE_CHARS];
+uint32_t pcc_total[NUM_OF_PRINTABLE_CHARS], networkPrintableCounter, networkFileSize;
 struct sockaddr_in serv_addr, client_addr;
 int listenfd, connfd, fileSize, printableCounter;
 char *fileBuffer;
@@ -115,12 +115,12 @@ int main(int argc, char *argv[]) {
 
         // Reading file size
         printf("Server read file size\n");
-        retVal = read(connfd, &fileSize, sizeof(uint32_t));
+        retVal = read(connfd, &networkFileSize, sizeof(uint32_t));
         if (retVal != sizeof(uint32_t)) {
             perror("Couldn't read file size from socket");
             exit(1);
         }
-        fileSize = ntohl(fileSize);
+        fileSize = ntohl(networkFileSize);
 
         // Creating buffer for file content
         printf("Server creating file buffer\n");
@@ -149,8 +149,8 @@ int main(int argc, char *argv[]) {
         }
 
         // Writing result to client
-        // TODO understand when to convert to network order
         printf("Server writes result %d to client\n", printableCounter);
+        networkPrintableCounter = htonl(printableCounter);
         retVal = write(connfd, &printableCounter, sizeof(uint32_t));
         if (retVal != sizeof(uint32_t)) {
             perror("Couldn't write counter result to socket");
