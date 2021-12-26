@@ -115,21 +115,23 @@ int main(int argc, char *argv[]) {
 
         // Reading file size (4 bytes)
         printf("Server read file size\n");
-        // bytesRead = 0;
-        // while (bytesRead < 4) {
-        //     bytesRead += read(connfd, (&networkFileSize)+bytesRead, 4-bytesRead);
-        // }
-        // if (bytesRead != 4) {
-        //     perror("Couldn't read file size from socket");
-        //     exit(1);
-        // }
-
         bytesRead = 0;
-        bytesRead = read(connfd, &networkFileSize, 4);
+        bytesCurrRead = 1;
+        while (bytesCurrRead > 0) {
+            bytesCurrRead = read(connfd, (&networkFileSize)+bytesRead, 4-bytesRead);
+            bytesRead += bytesCurrRead;
+        }
         if (bytesRead != 4) {
             perror("Couldn't read file size from socket");
             exit(1);
         }
+
+        // bytesRead = 0;
+        // bytesRead = read(connfd, &networkFileSize, 4);
+        // if (bytesRead != 4) {
+        //     perror("Couldn't read file size from socket");
+        //     exit(1);
+        // }
         fileSize = ntohl(networkFileSize);
 
         // Creating buffer for file content
@@ -142,14 +144,24 @@ int main(int argc, char *argv[]) {
 
         // Reading file content
         printf("Server read file content\n");
+        // bytesRead = 0;
+        // bytesRead = read(connfd, fileBuffer, fileSize);
+        // if (bytesRead != fileSize) {
+        //     perror("Couldn't read all file content from socket");
+        //     exit(1);
+        // }
+
         bytesRead = 0;
-        bytesRead = read(connfd, fileBuffer, fileSize);
+        bytesCurrRead = 1;
+        while (bytesCurrRead > 0) {
+            bytesCurrRead = read(connfd, fileBuffer+bytesRead, fileSize-bytesRead);
+            bytesRead += bytesCurrRead;
+        }
         if (bytesRead != fileSize) {
-            perror("Couldn't read all file content from socket");
+            perror("Couldn't read file size from socket");
             exit(1);
         }
-
-        // int bytes = 1;
+        //bytesRead = 0;
         // while (bytes > 0){
 		//     bytes = read(connfd, fileBuffer[bytesRead], fileSize-bytesRead);
         //     bytesRead += bytes;
