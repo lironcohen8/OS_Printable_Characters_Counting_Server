@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
     // Creating buffer for file content
     printf("Client creates buffer for file content\n");
-    fileBuffer = (char *)calloc(1,fileSize+1);
+    fileBuffer = (char *)calloc(fileSize+1, sizeof(char));
     if (fileBuffer == NULL) {
         perror("Can't allocate memory for buffer");
         exit(1);
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Sending file size
-    printf("Client sends file size\n");    
+    printf("Client sends file size\n");
     networkFileSize = htonl(fileSize);
     retVal = write(sockfd, &networkFileSize, sizeof(uint32_t));
     if (retVal != sizeof(uint32_t)) {
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 
     // Sending file content
     printf("Client sends file content\n");  
-    retVal = write(sockfd, &fileBuffer, fileSize);
+    retVal = write(sockfd, fileBuffer, fileSize);
     if (retVal != fileSize) {
         perror("Couldn't write all file content to socket");
         exit(1);

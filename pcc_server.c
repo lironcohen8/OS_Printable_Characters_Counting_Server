@@ -16,7 +16,7 @@
 uint16_t serverPort;
 uint32_t pcc_total[NUM_OF_PRINTABLE_CHARS], networkPrintableCounter, networkFileSize;
 struct sockaddr_in serv_addr, client_addr;
-int listenfd, connfd, fileSize, printableCounter;
+int listenfd, connfd, fileSize, printableCounter = 0, bytesRead = 0, bytesCurrRead = 0;
 char *fileBuffer;
 socklen_t addrsize = sizeof(struct sockaddr_in);
 
@@ -113,10 +113,20 @@ int main(int argc, char *argv[]) {
             exit(1);
         }
 
-        // Reading file size
+        // Reading file size (4 bytes)
         printf("Server read file size\n");
-        retVal = read(connfd, &networkFileSize, sizeof(uint32_t));
-        if (retVal != sizeof(uint32_t)) {
+        // bytesRead = 0;
+        // while (bytesRead < 4) {
+        //     bytesRead += read(connfd, (&networkFileSize)+bytesRead, 4-bytesRead);
+        // }
+        // if (bytesRead != 4) {
+        //     perror("Couldn't read file size from socket");
+        //     exit(1);
+        // }
+
+        bytesRead = 0;
+        bytesRead = read(connfd, &networkFileSize, 4);
+        if (bytesRead != 4) {
             perror("Couldn't read file size from socket");
             exit(1);
         }
@@ -124,7 +134,7 @@ int main(int argc, char *argv[]) {
 
         // Creating buffer for file content
         printf("Server creating file buffer\n");
-        fileBuffer = (char *)calloc(1,fileSize+1);
+        fileBuffer = (char *)calloc(fileSize+1, sizeof(char));
         if (fileBuffer == NULL) {
             perror("Can't allocate memory for buffer");
             exit(1);
@@ -132,11 +142,38 @@ int main(int argc, char *argv[]) {
 
         // Reading file content
         printf("Server read file content\n");
-        retVal = read(connfd, &fileBuffer, fileSize);
-        if (retVal != fileSize) {
+        bytesRead = 0;
+        bytesRead = read(connfd, fileBuffer, fileSize);
+        if (bytesRead != fileSize) {
             perror("Couldn't read all file content from socket");
             exit(1);
         }
+
+        // int bytes = 1;
+        // while (bytes > 0){
+		//     bytes = read(connfd, fileBuffer[bytesRead], fileSize-bytesRead);
+        //     bytesRead += bytes;
+	    // }
+	    // if (bytes < 0 ){
+        //     //if (!(errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE)){
+        //         perror("data read failed\n");
+        //         exit(1);
+        //     // }else{
+        //     //     fprintf(stderr, "TCP Error while reading data: %s\n", strerror(errno));
+        //     //     close(connfd);
+        //     //     connfd = -1;
+        //     //     continue;
+        //     // }
+        // }
+        // else{ // (bytes == 0)
+        //     if(bytesRead != fileSize){ // indicating client process killed unexpectedly
+        //         perror("unexpected conncection close while reading data, " 
+        //                         "server will keep accepting new client connections.\n");
+        //         close(connfd);
+        //         connfd = -1;
+        //         continue;
+        //     }
+        // }
 
         // Calculating printable characters number
         printf("Server calculate result\n");
@@ -151,7 +188,7 @@ int main(int argc, char *argv[]) {
         // Writing result to client
         printf("Server writes result %d to client\n", printableCounter);
         networkPrintableCounter = htonl(printableCounter);
-        retVal = write(connfd, &printableCounter, sizeof(uint32_t));
+        retVal = write(connfd, &networkPrintableCounter, sizeof(uint32_t));
         if (retVal != sizeof(uint32_t)) {
             perror("Couldn't write counter result to socket");
             exit(1);
@@ -161,7 +198,9 @@ int main(int argc, char *argv[]) {
         printf("Server updates pcc_total\n");
         for (i = 0; i < fileSize; i++) {
             charValue = fileBuffer[i];
-            pcc_total[charValue-32]++;
+            if ((charValue >= 32) && (charValue <= 126)) {
+                pcc_total[charValue-32]++;
+            }
         }
 
         // Closing connection socket
