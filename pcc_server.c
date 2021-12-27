@@ -17,13 +17,14 @@
 uint16_t serverPort;
 uint32_t pcc_total[NUM_OF_PRINTABLE_CHARS], networkPrintableCounter, networkFileSize;
 struct sockaddr_in serv_addr, client_addr;
-int listenfd, connfd, fileSize, printableCounter = 0, bytesRead = 0, bytesCurrRead = 0, bytesWritten = 0, bytesCurrWrite = 0;
+int listenfd = -1, connfd = -1, fileSize, printableCounter = 0, bytesRead = 0, bytesCurrRead = 0;
+int bytesWritten = 0, bytesCurrWrite = 0, sigintFlag = 0;
 char *fileBuffer;
 socklen_t addrsize = sizeof(struct sockaddr_in);
 
-// handler for SIGINT
-void sigint_handler(int signum, siginfo_t* info, void *ptr) { 
-	int i, retVal;
+// printing results and closing server
+void finish() {
+    int i, retVal;
     for (i = 0; i < NUM_OF_PRINTABLE_CHARS; i++) {
         printf("char '%c' : %u times\n", i+32, pcc_total[i]);
     }
@@ -35,6 +36,18 @@ void sigint_handler(int signum, siginfo_t* info, void *ptr) {
         exit(1);
     }
     exit(0);
+}
+
+// handler for SIGINT
+void sigint_handler(int signum, siginfo_t* info, void *ptr) { 
+	// No connection to continue handling, printing result and closing server
+    if (connfd < 0) {
+        finish();
+    }
+    // Connection is in progress, finishing it and then calling finish()
+    else {
+        sigintFlag = 1;
+    }
 }
 
 // Preparing SIGINT handler
@@ -107,6 +120,11 @@ int main(int argc, char *argv[]) {
     }
 
     while (1) {
+        // Checking if we should finish
+        if (sigintFlag == 1) {
+            finish();
+        }
+        
         // Accepting a connection
         //printf("***Server accept\n");
         connfd = accept(listenfd, (struct sockaddr*) &client_addr, &addrsize);
@@ -127,6 +145,7 @@ int main(int argc, char *argv[]) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while reading file size from socket, continuing to next connection");
                 close(connfd);
+                connfd = -1;
                 continue;
             }
             else {
@@ -138,6 +157,7 @@ int main(int argc, char *argv[]) {
             if (bytesRead != 4) {
                 perror("Error while reading file size from socket, continuing to next connection");
                 close(connfd);
+                connfd = -1;
                 continue;
             }
         }
@@ -163,6 +183,7 @@ int main(int argc, char *argv[]) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while reading file content from socket, continuing to next connection");
                 close(connfd);
+                connfd = -1;
                 continue;
             }
             else {
@@ -174,6 +195,7 @@ int main(int argc, char *argv[]) {
             if (bytesRead != fileSize) {
                 perror("Error while reading file content from socket, continuing to next connection");
                 close(connfd);
+                connfd = -1;
                 continue;
             }
         }
@@ -202,6 +224,7 @@ int main(int argc, char *argv[]) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while writing counter to socket, continuing to next connection");
                 close(connfd);
+                connfd = -1;
                 continue;
             }
             else {
@@ -213,6 +236,7 @@ int main(int argc, char *argv[]) {
             if (bytesWritten != 4) {
                 perror("Error while writing counter to socket, continuing to next connection");
                 close(connfd);
+                connfd = -1;
                 continue;
             }
         }
@@ -228,6 +252,7 @@ int main(int argc, char *argv[]) {
 
         // Closing connection socket
         //printf("***Server closes connection fd\n");
+        connfd = -1;
         retVal = close(connfd);
         if (retVal != 0) {
             perror("Can't close connection socket");
