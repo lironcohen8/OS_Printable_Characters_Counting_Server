@@ -28,6 +28,7 @@ void sigint_handler(int signum, siginfo_t* info, void *ptr) {
         printf("char '%c' : %u times\n", i+32, pcc_total[i]);
     }
     // Closing listening socket
+    // TODO check if needed and where
     retVal = close(listenfd);
     if (retVal != 0) {
         perror("Can't close listening socket");

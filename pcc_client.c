@@ -80,7 +80,6 @@ int main(int argc, char *argv[]) {
     }
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(serverPort); // sets port from args, Note: htons for endiannes
-    // TODO understand if need binary
 
     // Connecting to server
     //printf("***Client connects to server\n");    
@@ -120,6 +119,7 @@ int main(int argc, char *argv[]) {
     printf("# of printable characters: %u\n", printableCharsCount);
 
     // Closing socket
+    // TODO check if needed and where
     //printf("***Client closes sockets\n");  
     retVal = close(sockfd);
     if (retVal != 0) {
