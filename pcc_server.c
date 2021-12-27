@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
         if (sigintFlag == 1) {
             finish();
         }
-        
+
         // Accepting a connection
         //printf("***Server accept\n");
         connfd = accept(listenfd, (struct sockaddr*) &client_addr, &addrsize);
@@ -252,11 +252,11 @@ int main(int argc, char *argv[]) {
 
         // Closing connection socket
         //printf("***Server closes connection fd\n");
-        connfd = -1;
         retVal = close(connfd);
         if (retVal != 0) {
             perror("Can't close connection socket");
             exit(1);
         }
+        connfd = -1;
     }
 }
