@@ -73,7 +73,11 @@ int main(int argc, char *argv[]) {
 
     // Creating server address struct
     //printf("***Client creating server address struct\n");
-	inet_pton(AF_INET, serverIP, &serv_addr.sin_addr);
+	retVal = inet_pton(AF_INET, serverIP, &serv_addr.sin_addr);
+    if (retVal != 1) {
+        perror("Can't convert server IP address to binary");
+        exit(1);
+    }
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(serverPort); // sets port from args, Note: htons for endiannes
     // TODO understand if need binary
@@ -114,7 +118,6 @@ int main(int argc, char *argv[]) {
 
     // Printing number
     printf("# of printable characters: %u\n", printableCharsCount);
-    exit(0);
 
     // Closing socket
     //printf("***Client closes sockets\n");  
@@ -131,4 +134,6 @@ int main(int argc, char *argv[]) {
         perror("Can't close file");
         exit(1);
     }
+
+    exit(0);
 }
