@@ -16,7 +16,7 @@
 uint16_t serverPort;
 uint32_t pcc_total[NUM_OF_PRINTABLE_CHARS], networkPrintableCounter, networkFileSize;
 struct sockaddr_in serv_addr, client_addr;
-int listenfd, connfd, fileSize, printableCounter = 0, bytesRead = 0, bytesCurrRead = 0;
+int listenfd, connfd, fileSize, printableCounter = 0, bytesRead = 0, bytesCurrRead = 0, bytesWritten = 0, bytesCurrWrite = 0;
 char *fileBuffer;
 socklen_t addrsize = sizeof(struct sockaddr_in);
 
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     sscanf(argv[1],"%hu",&serverPort);
 
     // Initializing pcc_total
-    memset(&pcc_total, 0, sizeof(uint32_t)*NUM_OF_PRINTABLE_CHARS);
+    memset(&pcc_total, 0, 4*NUM_OF_PRINTABLE_CHARS);
 
     // Preparing SIGINT handler
     retVal = prepare_handler();
@@ -121,17 +121,25 @@ int main(int argc, char *argv[]) {
             bytesCurrRead = read(connfd, (&networkFileSize)+bytesRead, 4-bytesRead);
             bytesRead += bytesCurrRead;
         }
-        if (bytesRead != 4) {
-            perror("Couldn't read file size from socket");
-            exit(1);
+        if (bytesCurrRead < 0) {
+            if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
+                perror("Error while reading file size from socket, continuing to next connection");
+                close(connfd);
+                continue;
+            }
+            else {
+                perror("Error while reading file size from socket");
+                exit(1);
+            }
+        }
+        else { // bytesCurrRead = 0
+            if (bytesRead != 4) {
+                perror("Error while reading file size from socket, continuing to next connection");
+                close(connfd);
+                continue;
+            }
         }
 
-        // bytesRead = 0;
-        // bytesRead = read(connfd, &networkFileSize, 4);
-        // if (bytesRead != 4) {
-        //     perror("Couldn't read file size from socket");
-        //     exit(1);
-        // }
         fileSize = ntohl(networkFileSize);
 
         // Creating buffer for file content
@@ -143,49 +151,30 @@ int main(int argc, char *argv[]) {
         }
 
         // Reading file content
-        //printf("***Server read file content\n");
-        // bytesRead = 0;
-        // bytesRead = read(connfd, fileBuffer, fileSize);
-        // if (bytesRead != fileSize) {
-        //     perror("Couldn't read all file content from socket");
-        //     exit(1);
-        // }
-
         bytesRead = 0;
         bytesCurrRead = 1;
         while (bytesCurrRead > 0) {
             bytesCurrRead = read(connfd, fileBuffer+bytesRead, fileSize-bytesRead);
             bytesRead += bytesCurrRead;
         }
-        if (bytesRead != fileSize) {
-            perror("Couldn't read file size from socket");
-            exit(1);
+        if (bytesCurrRead < 0) {
+            if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
+                perror("Error while reading file content from socket, continuing to next connection");
+                close(connfd);
+                continue;
+            }
+            else {
+                perror("Error while reading file content from socket");
+                exit(1);
+            }
         }
-        //bytesRead = 0;
-        // while (bytes > 0){
-		//     bytes = read(connfd, fileBuffer[bytesRead], fileSize-bytesRead);
-        //     bytesRead += bytes;
-	    // }
-	    // if (bytes < 0 ){
-        //     //if (!(errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE)){
-        //         perror("data read failed\n");
-        //         exit(1);
-        //     // }else{
-        //     //     fprintf(stderr, "TCP Error while reading data: %s\n", strerror(errno));
-        //     //     close(connfd);
-        //     //     connfd = -1;
-        //     //     continue;
-        //     // }
-        // }
-        // else{ // (bytes == 0)
-        //     if(bytesRead != fileSize){ // indicating client process killed unexpectedly
-        //         perror("unexpected conncection close while reading data, " 
-        //                         "server will keep accepting new client connections.\n");
-        //         close(connfd);
-        //         connfd = -1;
-        //         continue;
-        //     }
-        // }
+        else { // bytesCurrRead = 0
+            if (bytesRead != fileSize) {
+                perror("Error while reading file content from socket, continuing to next connection");
+                close(connfd);
+                continue;
+            }
+        }
 
         // Calculating printable characters number
         //printf("***Server calculate result\n");
@@ -200,10 +189,30 @@ int main(int argc, char *argv[]) {
         // Writing result to client
         //printf("***Server writes result %d to client\n", printableCounter);
         networkPrintableCounter = htonl(printableCounter);
-        retVal = write(connfd, &networkPrintableCounter, sizeof(uint32_t));
-        if (retVal != sizeof(uint32_t)) {
-            perror("Couldn't write counter result to socket");
-            exit(1);
+
+        bytesWritten = 0;
+        bytesCurrWrite = 1;
+        while (bytesCurrWrite > 0) {
+            bytesCurrWrite = write(connfd, (&networkPrintableCounter)+bytesWritten, 4-bytesWritten);
+            bytesWritten += bytesCurrWrite;
+        }
+        if (bytesCurrWrite < 0) {
+            if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
+                perror("Error while writing counter to socket, continuing to next connection");
+                close(connfd);
+                continue;
+            }
+            else {
+                perror("Error while writing counter to socket");
+                exit(1);
+            }
+        }
+        else { // bytesCurrWrite = 0
+            if (bytesWritten != 4) {
+                perror("Error while writing counter to socket, continuing to next connection");
+                close(connfd);
+                continue;
+            }
         }
 
         // Updating pcc_total
