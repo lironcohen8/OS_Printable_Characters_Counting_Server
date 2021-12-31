@@ -24,17 +24,17 @@ socklen_t addrsize = sizeof(struct sockaddr_in);
 
 // printing results and closing server
 void finish() {
-    int i, retVal;
+    int i;//, retVal;
     for (i = 0; i < NUM_OF_PRINTABLE_CHARS; i++) {
         printf("char '%c' : %u times\n", i+32, pcc_total[i]);
     }
     // Closing listening socket
     // TODO check if needed and where
-    retVal = close(listenfd);
-    if (retVal != 0) {
-        perror("Can't close listening socket");
-        exit(1);
-    }
+    // retVal = close(listenfd);
+    // if (retVal != 0) {
+    //     perror("Can't close listening socket");
+    //     exit(1);
+    // }
     exit(0);
 }
 
@@ -55,7 +55,7 @@ int prepare_handler(void) {
     struct sigaction sigint_action; // struct of sigaction to pass to registration
 	memset(&sigint_action, 0, sizeof(sigint_action)); // setting sigaction mem to 0
 	sigint_action.sa_sigaction = sigint_handler; // setting handler to my function
-	sigint_action.sa_flags = SA_RESTART | SA_SIGINFO; // including the info
+	sigint_action.sa_flags = SA_SIGINFO; // including the info
 	if (sigaction(SIGINT, &sigint_action, NULL) != 0) { // registering handler
 		perror("Error in SIGINT handler registration");
 		return 1;
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
         if (bytesCurrRead < 0) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while reading file size from socket, continuing to next connection");
-                close(connfd);
+                //close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
         else { // bytesCurrRead = 0
             if (bytesRead != 4) {
                 perror("Error while reading file size from socket, continuing to next connection");
-                close(connfd);
+                //close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
         if (bytesCurrRead < 0) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while reading file content from socket, continuing to next connection");
-                close(connfd);
+                //close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
         else { // bytesCurrRead = 0
             if (bytesRead != fileSize) {
                 perror("Error while reading file content from socket, continuing to next connection");
-                close(connfd);
+                //close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
         if (bytesCurrWrite < 0) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while writing counter to socket, continuing to next connection");
-                close(connfd);
+                //close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
         else { // bytesCurrWrite = 0
             if (bytesWritten != 4) {
                 perror("Error while writing counter to socket, continuing to next connection");
-                close(connfd);
+                //close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -252,11 +252,11 @@ int main(int argc, char *argv[]) {
 
         // Closing connection socket
         //printf("***Server closes connection fd\n");
-        retVal = close(connfd);
-        if (retVal != 0) {
-            perror("Can't close connection socket");
-            exit(1);
-        }
+        // retVal = close(connfd);
+        // if (retVal != 0) {
+        //     perror("Can't close connection socket");
+        //     exit(1);
+        // }
         connfd = -1;
     }
 }

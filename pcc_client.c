@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
 
     // Creating server address struct
     //printf("***Client creating server address struct\n");
-	retVal = inet_pton(AF_INET, serverIP, &serv_addr.sin_addr);
+	retVal = inet_pton(AF_INET, serverIP, &(serv_addr.sin_addr));
     if (retVal != 1) {
         perror("Can't convert server IP address to binary");
         exit(1);
@@ -121,19 +121,19 @@ int main(int argc, char *argv[]) {
     // Closing socket
     // TODO check if needed and where
     //printf("***Client closes sockets\n");  
-    retVal = close(sockfd);
-    if (retVal != 0) {
-        perror("Can't close socket");
-        exit(1);
-    }
+    // retVal = close(sockfd);
+    // if (retVal != 0) {
+    //     perror("Can't close socket");
+    //     exit(1);
+    // }
 
     // Closing file
     //printf("***Client closes file\n");  
-    retVal = close(filefd);
-    if (retVal != 0) {
-        perror("Can't close file");
-        exit(1);
-    }
+    // retVal = close(filefd);
+    // if (retVal != 0) {
+    //     perror("Can't close file");
+    //     exit(1);
+    // }
 
     exit(0);
 }
