@@ -24,17 +24,17 @@ socklen_t addrsize = sizeof(struct sockaddr_in);
 
 // printing results and closing server
 void finish() {
-    int i;//, retVal;
+    int i, retVal;
     for (i = 0; i < NUM_OF_PRINTABLE_CHARS; i++) {
         printf("char '%c' : %u times\n", i+32, pcc_total[i]);
     }
     // Closing listening socket
-    // TODO check if needed and where
-    // retVal = close(listenfd);
-    // if (retVal != 0) {
-    //     perror("Can't close listening socket");
-    //     exit(1);
-    // }
+    TODO check if needed and where
+    retVal = close(listenfd);
+    if (retVal != 0) {
+        perror("Can't close listening socket");
+        exit(1);
+    }
     exit(0);
 }
 
@@ -92,7 +92,6 @@ int main(int argc, char *argv[]) {
     }
 
     // Enabling port reuse
-    // TODO understand if needed in connfd
     retVal = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
     if (retVal < 0) {
         perror("setsockopt(SO_REUSEADDR) failed");
@@ -144,7 +143,7 @@ int main(int argc, char *argv[]) {
         if (bytesCurrRead < 0  && errno != EINTR) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while reading file size from socket, continuing to next connection");
-                //close(connfd);
+                close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -156,7 +155,7 @@ int main(int argc, char *argv[]) {
         else { // bytesCurrRead = 0
             if (bytesRead != 4) {
                 perror("Error while reading file size from socket, continuing to next connection");
-                //close(connfd);
+                close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -182,7 +181,7 @@ int main(int argc, char *argv[]) {
         if (bytesCurrRead < 0 && errno != EINTR) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while reading file content from socket, continuing to next connection");
-                //close(connfd);
+                close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -194,7 +193,7 @@ int main(int argc, char *argv[]) {
         else { // bytesCurrRead = 0
             if (bytesRead != fileSize) {
                 perror("Error while reading file content from socket, continuing to next connection");
-                //close(connfd);
+                close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -223,7 +222,7 @@ int main(int argc, char *argv[]) {
         if (bytesCurrWrite < 0 && errno != EINTR) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while writing counter to socket, continuing to next connection");
-                //close(connfd);
+                close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -235,7 +234,7 @@ int main(int argc, char *argv[]) {
         else { // bytesCurrWrite = 0
             if (bytesWritten != 4) {
                 perror("Error while writing counter to socket, continuing to next connection");
-                //close(connfd);
+                close(connfd);
                 connfd = -1;
                 continue;
             }
@@ -251,12 +250,12 @@ int main(int argc, char *argv[]) {
         }
 
         // Closing connection socket
-        //printf("***Server closes connection fd\n");
-        // retVal = close(connfd);
-        // if (retVal != 0) {
-        //     perror("Can't close connection socket");
-        //     exit(1);
-        // }
+        printf("***Server closes connection fd\n");
+        retVal = close(connfd);
+        if (retVal != 0) {
+            perror("Can't close connection socket");
+            exit(1);
+        }
         connfd = -1;
     }
 }

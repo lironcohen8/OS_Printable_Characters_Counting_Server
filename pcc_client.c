@@ -11,9 +11,9 @@
 
 char *filePath, *serverIP, *fileBuffer;
 uint16_t serverPort;
-uint32_t networkFileSize, networkPrintableCharsCount, networkServerIP;
+uint32_t networkFileSize, networkPrintableCharsCount, networkServerIP, fileSize;
 struct sockaddr_in serv_addr;
-int filefd, sockfd, fileSize, printableCharsCount;
+int filefd, sockfd, printableCharsCount;
 
 int main(int argc, char *argv[]) {
     int retVal;
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
         perror("Can't read file size with fstat");
         exit(1);
     }
-    fileSize = st.st_size;
+    fileSize = (uint32_t)st.st_size;
 
     // Creating buffer for file content
     //printf("***Client creates buffer for file content\n");
@@ -119,21 +119,21 @@ int main(int argc, char *argv[]) {
     printf("# of printable characters: %u\n", printableCharsCount);
 
     // Closing socket
-    // TODO check if needed and where
-    //printf("***Client closes sockets\n");  
-    // retVal = close(sockfd);
-    // if (retVal != 0) {
-    //     perror("Can't close socket");
-    //     exit(1);
-    // }
+    TODO check if needed and where
+    printf("***Client closes sockets\n");  
+    retVal = close(sockfd);
+    if (retVal != 0) {
+        perror("Can't close socket");
+        exit(1);
+    }
 
-    // Closing file
-    //printf("***Client closes file\n");  
-    // retVal = close(filefd);
-    // if (retVal != 0) {
-    //     perror("Can't close file");
-    //     exit(1);
-    // }
+    //Closing file
+    printf("***Client closes file\n");  
+    retVal = close(filefd);
+    if (retVal != 0) {
+        perror("Can't close file");
+        exit(1);
+    }
 
     exit(0);
 }
