@@ -127,9 +127,14 @@ int main(int argc, char *argv[]) {
         // Accepting a connection
         //printf("***Server accept\n");
         connfd = accept(listenfd, (struct sockaddr*) &client_addr, &addrsize);
-        if (connfd < 0 && errno != EINTR) {
-            perror("Accept failed");
-            exit(1);
+        if (connfd < 0) {
+            if (errno != EINTR) {
+                perror("Accept failed");
+                exit(1);
+            }
+            else {
+                finish();
+            }
         }
 
         // Reading file size (4 bytes)
