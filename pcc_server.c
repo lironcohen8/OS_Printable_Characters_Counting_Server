@@ -29,7 +29,6 @@ void finish() {
         printf("char '%c' : %u times\n", i+32, pcc_total[i]);
     }
     // Closing listening socket
-    TODO check if needed and where
     retVal = close(listenfd);
     if (retVal != 0) {
         perror("Can't close listening socket");
@@ -255,7 +254,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Closing connection socket
-        printf("***Server closes connection fd\n");
+        //printf("***Server closes connection fd\n");
         retVal = close(connfd);
         if (retVal != 0) {
             perror("Can't close connection socket");

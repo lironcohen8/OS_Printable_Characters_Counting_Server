@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
         perror("Can't connect to server");
         exit(1);
     }
-
+    
     // Sending file size
     //printf("***Client sends file size\n");
     networkFileSize = htonl(fileSize);
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
         perror("Couldn't write file size to socket");
         exit(1);
     }
-
+    
     // Sending file content
     //printf("***Client sends file content\n");  
     retVal = write(sockfd, fileBuffer, fileSize);
@@ -119,8 +119,7 @@ int main(int argc, char *argv[]) {
     printf("# of printable characters: %u\n", printableCharsCount);
 
     // Closing socket
-    TODO check if needed and where
-    printf("***Client closes sockets\n");  
+    //printf("***Client closes sockets\n");  
     retVal = close(sockfd);
     if (retVal != 0) {
         perror("Can't close socket");
@@ -128,7 +127,7 @@ int main(int argc, char *argv[]) {
     }
 
     //Closing file
-    printf("***Client closes file\n");  
+    //printf("***Client closes file\n");  
     retVal = close(filefd);
     if (retVal != 0) {
         perror("Can't close file");
