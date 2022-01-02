@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
         // Accepting a connection
         //printf("***Server accept\n");
         connfd = accept(listenfd, (struct sockaddr*) &client_addr, &addrsize);
-        if (connfd < 0) {
+        if (connfd < 0 && errno != EINTR) {
             perror("Accept failed");
             exit(1);
         }
@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
             bytesCurrRead = read(connfd, (&networkFileSize)+bytesRead, 4-bytesRead);
             bytesRead += bytesCurrRead;
         }
-        if (bytesCurrRead < 0) {
+        if (bytesCurrRead < 0  && errno != EINTR) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while reading file size from socket, continuing to next connection");
                 //close(connfd);
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]) {
             bytesCurrRead = read(connfd, fileBuffer+bytesRead, fileSize-bytesRead);
             bytesRead += bytesCurrRead;
         }
-        if (bytesCurrRead < 0) {
+        if (bytesCurrRead < 0 && errno != EINTR) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while reading file content from socket, continuing to next connection");
                 //close(connfd);
@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
             bytesCurrWrite = write(connfd, (&networkPrintableCounter)+bytesWritten, 4-bytesWritten);
             bytesWritten += bytesCurrWrite;
         }
-        if (bytesCurrWrite < 0) {
+        if (bytesCurrWrite < 0 && errno != EINTR) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while writing counter to socket, continuing to next connection");
                 //close(connfd);
