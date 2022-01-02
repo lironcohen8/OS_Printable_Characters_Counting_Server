@@ -30,7 +30,6 @@ int main(int argc, char *argv[]) {
     filePath = argv[3];
 
     // Opening file
-    //printf("***Client opens file\n");
     filefd = open(filePath, O_RDONLY);
     if (filefd < 0) {
         perror("Can't open file");
@@ -38,7 +37,6 @@ int main(int argc, char *argv[]) {
     }
 
     // Calculating file size
-    //printf("***Client calculates file size\n");
     struct stat st; 
     retVal = fstat(filefd, &st);
     if (retVal != 0) {
@@ -48,7 +46,6 @@ int main(int argc, char *argv[]) {
     fileSize = (uint32_t)st.st_size;
 
     // Creating buffer for file content
-    //printf("***Client creates buffer for file content\n");
     fileBuffer = (char *)calloc(fileSize+1, sizeof(char));
     if (fileBuffer == NULL) {
         perror("Can't allocate memory for buffer");
@@ -56,7 +53,6 @@ int main(int argc, char *argv[]) {
     }
     
     // Reading file content to buffer
-    //printf("***Client reads file content to buffer\n");
     retVal = read(filefd, fileBuffer, fileSize);
     if (retVal != fileSize) {
         perror("Can't read from file to buffer");
@@ -64,7 +60,6 @@ int main(int argc, char *argv[]) {
     }
 
     // Creating socket 
-    //printf("***Client crates socket\n");
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         perror("Can't create socket");
@@ -72,7 +67,6 @@ int main(int argc, char *argv[]) {
     }
 
     // Creating server address struct
-    //printf("***Client creating server address struct\n");
 	retVal = inet_pton(AF_INET, serverIP, &(serv_addr.sin_addr));
     if (retVal != 1) {
         perror("Can't convert server IP address to binary");
@@ -82,7 +76,6 @@ int main(int argc, char *argv[]) {
 	serv_addr.sin_port = htons(serverPort); // sets port from args, Note: htons for endiannes
 
     // Connecting to server
-    //printf("***Client connects to server\n");    
     retVal = connect(sockfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
     if (retVal < 0) {
         perror("Can't connect to server");
@@ -90,7 +83,6 @@ int main(int argc, char *argv[]) {
     }
     
     // Sending file size
-    //printf("***Client sends file size\n");
     networkFileSize = htonl(fileSize);
     retVal = write(sockfd, &networkFileSize, sizeof(uint32_t));
     if (retVal != sizeof(uint32_t)) {
@@ -99,7 +91,6 @@ int main(int argc, char *argv[]) {
     }
     
     // Sending file content
-    //printf("***Client sends file content\n");  
     retVal = write(sockfd, fileBuffer, fileSize);
     if (retVal != fileSize) {
         perror("Couldn't write all file content to socket");
@@ -107,7 +98,6 @@ int main(int argc, char *argv[]) {
     }
     
     // Recieving number of printable characters
-    //printf("***Client recieves number\n");  
     retVal = read(sockfd, &networkPrintableCharsCount, sizeof(uint32_t));
     if (retVal != sizeof(uint32_t)) {
         perror("Couldn't read number of printable characters from socket");
@@ -119,15 +109,13 @@ int main(int argc, char *argv[]) {
     printf("# of printable characters: %u\n", printableCharsCount);
 
     // Closing socket
-    //printf("***Client closes sockets\n");  
     retVal = close(sockfd);
     if (retVal != 0) {
         perror("Can't close socket");
         exit(1);
     }
 
-    //Closing file
-    //printf("***Client closes file\n");  
+    // Closing file
     retVal = close(filefd);
     if (retVal != 0) {
         perror("Can't close file");

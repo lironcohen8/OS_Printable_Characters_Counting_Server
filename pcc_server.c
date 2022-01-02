@@ -122,9 +122,7 @@ int main(int argc, char *argv[]) {
         if (sigintFlag == 1) {
             finish();
         }
-
         // Accepting a connection
-        //printf("***Server accept\n");
         connfd = accept(listenfd, (struct sockaddr*) &client_addr, &addrsize);
         if (connfd < 0) {
             if (errno != EINTR) {
@@ -135,9 +133,9 @@ int main(int argc, char *argv[]) {
                 finish();
             }
         }
+        sleep(30);
 
         // Reading file size (4 bytes)
-        //printf("***Server read file size\n");
         bytesRead = 0;
         bytesCurrRead = 1;
         while (bytesCurrRead > 0) {
@@ -168,7 +166,6 @@ int main(int argc, char *argv[]) {
         fileSize = ntohl(networkFileSize);
 
         // Creating buffer for file content
-        //printf("***Server creating file buffer\n");
         fileBuffer = (char *)calloc(fileSize+1, sizeof(char));
         if (fileBuffer == NULL) {
             perror("Can't allocate memory for buffer");
@@ -204,7 +201,6 @@ int main(int argc, char *argv[]) {
         }
 
         // Calculating printable characters number
-        //printf("***Server calculate result\n");
         printableCounter = 0;
         for (i = 0; i < fileSize; i++) {
             charValue = fileBuffer[i];
@@ -214,7 +210,6 @@ int main(int argc, char *argv[]) {
         }
 
         // Writing result to client
-        //printf("***Server writes result %d to client\n", printableCounter);
         networkPrintableCounter = htonl(printableCounter);
 
         bytesWritten = 0;
@@ -245,7 +240,6 @@ int main(int argc, char *argv[]) {
         }
 
         // Updating pcc_total
-        //printf("***Server updates pcc_total\n");
         for (i = 0; i < fileSize; i++) {
             charValue = fileBuffer[i];
             if ((charValue >= 32) && (charValue <= 126)) {
@@ -254,7 +248,6 @@ int main(int argc, char *argv[]) {
         }
 
         // Closing connection socket
-        //printf("***Server closes connection fd\n");
         retVal = close(connfd);
         if (retVal != 0) {
             perror("Can't close connection socket");
