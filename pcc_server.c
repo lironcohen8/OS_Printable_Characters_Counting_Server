@@ -133,7 +133,6 @@ int main(int argc, char *argv[]) {
                 finish();
             }
         }
-        sleep(30);
 
         // Reading file size (4 bytes)
         bytesRead = 0;

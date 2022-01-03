@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(serverPort); // sets port from args, Note: htons for endiannes
+	serv_addr.sin_port = htons(serverPort);
 
     // Connecting to server
     retVal = connect(sockfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
