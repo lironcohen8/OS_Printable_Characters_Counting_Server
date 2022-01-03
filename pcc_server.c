@@ -24,12 +24,12 @@ socklen_t addrsize = sizeof(struct sockaddr_in);
 
 // printing results and closing server
 void finish() {
-    int i, retVal;
+    int i;
     for (i = 0; i < NUM_OF_PRINTABLE_CHARS; i++) {
         printf("char '%c' : %u times\n", i+32, pcc_total[i]);
     }
     // Closing listening socket
-    retVal = close(listenfd);
+    close(listenfd);
     exit(0);
 }
 

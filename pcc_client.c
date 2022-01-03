@@ -13,7 +13,7 @@ char *filePath, *serverIP, *fileBuffer;
 uint16_t serverPort;
 uint32_t networkFileSize, networkPrintableCharsCount, networkServerIP, fileSize;
 struct sockaddr_in serv_addr;
-int filefd, sockfd, printableCharsCount, bytesRead = 0, bytesCurrRead = 0, bytesWritten = 0, bytesCurrWrite = 0,
+int filefd, sockfd, printableCharsCount, bytesRead = 0, bytesCurrRead = 0, bytesWritten = 0, bytesCurrWrite = 0;
 
 int main(int argc, char *argv[]) {
     int retVal;
