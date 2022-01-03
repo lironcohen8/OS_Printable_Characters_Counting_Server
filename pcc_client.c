@@ -13,7 +13,7 @@ char *filePath, *serverIP, *fileBuffer;
 uint16_t serverPort;
 uint32_t networkFileSize, networkPrintableCharsCount, networkServerIP, fileSize;
 struct sockaddr_in serv_addr;
-int filefd, sockfd, printableCharsCount;
+int filefd, sockfd, printableCharsCount, bytesRead = 0, bytesCurrRead = 0, bytesWritten = 0, bytesCurrWrite = 0,
 
 int main(int argc, char *argv[]) {
     int retVal;
@@ -83,23 +83,45 @@ int main(int argc, char *argv[]) {
     }
     
     // Sending file size
-    networkFileSize = htonl(fileSize);
     retVal = write(sockfd, &networkFileSize, sizeof(uint32_t));
     if (retVal != sizeof(uint32_t)) {
         perror("Couldn't write file size to socket");
         exit(1);
     }
-    
-    // Sending file content
-    retVal = write(sockfd, fileBuffer, fileSize);
-    if (retVal != fileSize) {
-        perror("Couldn't write all file content to socket");
+
+    // Writing file size to server
+    networkFileSize = htonl(fileSize);
+    bytesWritten = 0;
+    bytesCurrWrite = 1;
+    while (bytesCurrWrite > 0) {
+        bytesCurrWrite = write(sockfd, (&networkFileSize)+bytesWritten, 4-bytesWritten);
+        bytesWritten += bytesCurrWrite;
+    }
+    if (bytesCurrWrite < 0 || bytesWritten != 4) {
+        perror("Couldn't write file size to socket");
+        exit(1);
+    }
+
+    // Writing file content to server
+    bytesWritten = 0;
+    bytesCurrWrite = 1;
+    while (bytesCurrWrite > 0) {
+        bytesCurrWrite = write(sockfd, fileBuffer+bytesWritten, fileSize-bytesWritten);
+        bytesWritten += bytesCurrWrite;
+    }
+    if (bytesCurrWrite < 0 || bytesWritten != fileSize) {
+        perror("Couldn't write file content to socket");
         exit(1);
     }
     
     // Recieving number of printable characters
-    retVal = read(sockfd, &networkPrintableCharsCount, sizeof(uint32_t));
-    if (retVal != sizeof(uint32_t)) {
+    bytesRead = 0;
+    bytesCurrRead = 1;
+    while (bytesCurrRead > 0) {
+        bytesCurrRead = read(sockfd, &(networkPrintableCharsCount)+bytesRead, 4-bytesRead);
+        bytesRead += bytesCurrRead;
+    }
+    if (bytesCurrRead < 0 || bytesRead != 4) {
         perror("Couldn't read number of printable characters from socket");
         exit(1);
     }
