@@ -206,7 +206,6 @@ int main(int argc, char *argv[]) {
 
         // Writing result to client
         networkPrintableCounter = htonl(printableCounter);
-
         bytesWritten = 0;
         bytesCurrWrite = 1;
         while (bytesCurrWrite > 0) {
