@@ -30,10 +30,6 @@ void finish() {
     }
     // Closing listening socket
     retVal = close(listenfd);
-    if (retVal != 0) {
-        perror("Can't close listening socket");
-        exit(1);
-    }
     exit(0);
 }
 
@@ -248,10 +244,6 @@ int main(int argc, char *argv[]) {
 
         // Closing connection socket
         retVal = close(connfd);
-        if (retVal != 0) {
-            perror("Can't close connection socket");
-            exit(1);
-        }
         connfd = -1;
     }
 }

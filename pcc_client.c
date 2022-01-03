@@ -110,17 +110,9 @@ int main(int argc, char *argv[]) {
 
     // Closing socket
     retVal = close(sockfd);
-    if (retVal != 0) {
-        perror("Can't close socket");
-        exit(1);
-    }
 
     // Closing file
     retVal = close(filefd);
-    if (retVal != 0) {
-        perror("Can't close file");
-        exit(1);
-    }
 
     exit(0);
 }
