@@ -82,13 +82,6 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     
-    // Sending file size
-    retVal = write(sockfd, &networkFileSize, sizeof(uint32_t));
-    if (retVal != sizeof(uint32_t)) {
-        perror("Couldn't write file size to socket");
-        exit(1);
-    }
-
     // Writing file size to server
     networkFileSize = htonl(fileSize);
     bytesWritten = 0;
