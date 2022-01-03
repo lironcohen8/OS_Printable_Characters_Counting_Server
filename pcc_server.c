@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
             bytesCurrRead = read(connfd, (&networkFileSize)+bytesRead, 4-bytesRead);
             bytesRead += bytesCurrRead;
         }
-        if (bytesCurrRead < 0  && errno != EINTR) {
+        if (bytesCurrRead < 0 && errno != EINTR) {
             if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
                 perror("Error while reading file size from socket, continuing to next connection");
                 close(connfd);
