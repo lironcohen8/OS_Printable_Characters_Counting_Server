@@ -124,10 +124,10 @@ int main(int argc, char *argv[]) {
     printf("# of printable characters: %u\n", printableCharsCount);
 
     // Closing socket
-    retVal = close(sockfd);
+    close(sockfd);
 
     // Closing file
-    retVal = close(filefd);
+    close(filefd);
 
     exit(0);
 }

@@ -243,7 +243,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Closing connection socket
-        retVal = close(connfd);
+        close(connfd);
         connfd = -1;
     }
 }
