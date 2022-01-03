@@ -118,6 +118,7 @@ int main(int argc, char *argv[]) {
         if (sigintFlag == 1) {
             finish();
         }
+
         // Accepting a connection
         connfd = accept(listenfd, (struct sockaddr*) &client_addr, &addrsize);
         if (connfd < 0) {
@@ -157,11 +158,10 @@ int main(int argc, char *argv[]) {
                 continue;
             }
         }
-
         fileSize = ntohl(networkFileSize);
 
         // Creating buffer for file content
-        fileBuffer = (char *)calloc(fileSize+1, sizeof(char));
+        fileBuffer = (char *)calloc(fileSize, sizeof(char));
         if (fileBuffer == NULL) {
             perror("Can't allocate memory for buffer");
             exit(1);
