@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
         bytesCurrWrite = write(sockfd, (&networkFileSize)+bytesWritten, 4-bytesWritten);
         bytesWritten += bytesCurrWrite;
     }
-    if (bytesCurrWrite < 0 || bytesWritten != 4) { // TODO
+    if (bytesCurrWrite < 0 || bytesWritten != 4) { // There was an error
         perror("Couldn't write file size to socket");
         exit(1);
     }
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
         bytesCurrWrite = write(sockfd, fileBuffer+bytesWritten, fileSize-bytesWritten);
         bytesWritten += bytesCurrWrite;
     }
-    if (bytesCurrWrite < 0 || bytesWritten != fileSize) {
+    if (bytesCurrWrite < 0 || bytesWritten != fileSize) { // There was an error
         perror("Couldn't write file content to socket");
         exit(1);
     }
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
         bytesCurrRead = read(sockfd, &(networkPrintableCharsCount)+bytesRead, 4-bytesRead);
         bytesRead += bytesCurrRead;
     }
-    if (bytesCurrRead < 0 || bytesRead != 4) {
+    if (bytesCurrRead < 0 || bytesRead != 4) { // There was an error
         perror("Couldn't read number of printable characters from socket");
         exit(1);
     }

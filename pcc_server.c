@@ -134,35 +134,35 @@ int main(int argc, char *argv[]) {
         // Reading file size (4 bytes)
         bytesRead = 0;
         bytesCurrRead = 1;
-        while (bytesRead < 4) { // TODO change to sizeof(unsigned int)
+        while (bytesRead < 4) {
             bytesCurrRead = read(connfd, (&networkFileSize)+bytesRead, 4-bytesRead);
-            if (bytesCurrRead < 0) {
-                if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
+            if (bytesCurrRead < 0) { // There was an error
+                if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) { // TCP error
                     perror("Error while reading file size from socket, continuing to next connection");
                     close(connfd);
                     connfd = -1;
-                    nextConnectionFlag = 1;
+                    nextConnectionFlag = 1; // Indicates that we continue to next client
                     break;
                 }
-                else if (errno == EINTR) {
+                else if (errno == EINTR) { // Interrupt
                     continue;
                 }
-                else {
+                else { // Other errors
                     perror("Error while reading file size from socket");
                     exit(1);
                 }
             }
-            else if (bytesCurrRead == 0) {
+            else if (bytesCurrRead == 0) { // Connection terminated
                 fprintf(stderr, "Error while reading file content from socket, continuing to next connection\n");
                 close(connfd);
                 connfd = -1;
-                nextConnectionFlag = 1;
+                nextConnectionFlag = 1; // Indicates that we continue to next client
                 break;
             }
             bytesRead += bytesCurrRead;
         }
         
-        if (nextConnectionFlag == 1) {
+        if (nextConnectionFlag == 1) { // We should continue to the next client
             nextConnectionFlag = 0;
             continue;
         }
@@ -181,18 +181,18 @@ int main(int argc, char *argv[]) {
         bytesCurrRead = 1;
         while (bytesRead < fileSize) {
             bytesCurrRead = read(connfd, fileBuffer+bytesRead, fileSize-bytesRead);
-            if (bytesCurrRead < 0) {
-                if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
+            if (bytesCurrRead < 0) { // There was an error
+                if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) { // TCP error
                     perror("Error while reading file content from socket, continuing to next connection");
                     close(connfd);
                     connfd = -1;
-                    nextConnectionFlag = 1;
+                    nextConnectionFlag = 1; // Indicates that we continue to next client
                     break;
                 }
-                else if (errno == EINTR) {
+                else if (errno == EINTR) { // Interrupt
                     continue;
                 }
-                else {
+                else { // Other errors
                     perror("Error while reading file content from socket");
                     exit(1);
                 }
@@ -201,13 +201,13 @@ int main(int argc, char *argv[]) {
                 fprintf(stderr, "Error while reading file content from socket, continuing to next connection\n");
                 close(connfd);
                 connfd = -1;
-                nextConnectionFlag = 1;
+                nextConnectionFlag = 1; // Indicates that we continue to next client
                 break;
             }
             bytesRead += bytesCurrRead;
         }
         
-        if (nextConnectionFlag == 1) {
+        if (nextConnectionFlag == 1) { // We should continue to the next client
             nextConnectionFlag = 0;
             continue;
         }
@@ -225,21 +225,21 @@ int main(int argc, char *argv[]) {
         networkPrintableCounter = htonl(printableCounter);
         bytesWritten = 0;
         bytesCurrWrite = 1;
-        while (bytesWritten < 4) {// TODO
+        while (bytesWritten < 4) {
             bytesCurrWrite = write(connfd, (&networkPrintableCounter)+bytesWritten, 4-bytesWritten);
             bytesWritten += bytesCurrWrite;
-            if (bytesCurrWrite < 0) {
-                if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
+            if (bytesCurrWrite < 0) { // There was an error
+                if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) { // TCP error
                     perror("Error while writing count to socket, continuing to next connection");
                     close(connfd);
                     connfd = -1;
-                    nextConnectionFlag = 1;
+                    nextConnectionFlag = 1; // Indicates that we continue to next client
                     break;
                 }
-                else if (errno == EINTR) {
+                else if (errno == EINTR) { // Interrupt
                     continue;
                 }
-                else {
+                else { // Other errors
                     perror("Error while writing count to socket");
                     exit(1);
                 }
@@ -247,7 +247,7 @@ int main(int argc, char *argv[]) {
             bytesWritten += bytesCurrWrite;
         }
         
-        if (nextConnectionFlag == 1) {
+        if (nextConnectionFlag == 1) { // We should continue to the next client
             nextConnectionFlag = 0;
             continue;
         }
