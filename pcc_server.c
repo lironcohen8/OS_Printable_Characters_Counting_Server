@@ -18,7 +18,7 @@ uint16_t serverPort;
 uint32_t pcc_total[NUM_OF_PRINTABLE_CHARS], networkPrintableCounter, networkFileSize;
 struct sockaddr_in serv_addr, client_addr;
 int listenfd = -1, connfd = -1, fileSize, printableCounter = 0, bytesRead = 0, bytesCurrRead = 0;
-int bytesWritten = 0, bytesCurrWrite = 0, sigintFlag = 0;
+int bytesWritten = 0, bytesCurrWrite = 0, sigintFlag = 0, nextConnectionFlag = 0;
 char *fileBuffer;
 socklen_t addrsize = sizeof(struct sockaddr_in);
 
@@ -134,30 +134,39 @@ int main(int argc, char *argv[]) {
         // Reading file size (4 bytes)
         bytesRead = 0;
         bytesCurrRead = 1;
-        while (bytesCurrRead > 0) {
+        while (bytesRead < 4) { // TODO change to sizeof(unsigned int)
             bytesCurrRead = read(connfd, (&networkFileSize)+bytesRead, 4-bytesRead);
+            if (bytesCurrRead < 0) {
+                if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
+                    perror("Error while reading file size from socket, continuing to next connection");
+                    close(connfd);
+                    connfd = -1;
+                    nextConnectionFlag = 1;
+                    break;
+                }
+                else if (errno == EINTR) {
+                    continue;
+                }
+                else {
+                    perror("Error while reading file size from socket");
+                    exit(1);
+                }
+            }
+            else if (bytesCurrRead == 0) {
+                fprintf(stderr, "Error while reading file content from socket, continuing to next connection\n");
+                close(connfd);
+                connfd = -1;
+                nextConnectionFlag = 1;
+                break;
+            }
             bytesRead += bytesCurrRead;
         }
-        if (bytesCurrRead < 0 && errno != EINTR) {
-            if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
-                perror("Error while reading file size from socket, continuing to next connection");
-                close(connfd);
-                connfd = -1;
-                continue;
-            }
-            else {
-                perror("Error while reading file size from socket");
-                exit(1);
-            }
+        
+        if (nextConnectionFlag == 1) {
+            nextConnectionFlag = 0;
+            continue;
         }
-        else { // bytesCurrRead = 0
-            if (bytesRead != 4) {
-                perror("Error while reading file size from socket, continuing to next connection");
-                close(connfd);
-                connfd = -1;
-                continue;
-            }
-        }
+
         fileSize = ntohl(networkFileSize);
 
         // Creating buffer for file content
@@ -170,29 +179,37 @@ int main(int argc, char *argv[]) {
         // Reading file content
         bytesRead = 0;
         bytesCurrRead = 1;
-        while (bytesCurrRead > 0) {
+        while (bytesRead < fileSize) {
             bytesCurrRead = read(connfd, fileBuffer+bytesRead, fileSize-bytesRead);
+            if (bytesCurrRead < 0) {
+                if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
+                    perror("Error while reading file content from socket, continuing to next connection");
+                    close(connfd);
+                    connfd = -1;
+                    nextConnectionFlag = 1;
+                    break;
+                }
+                else if (errno == EINTR) {
+                    continue;
+                }
+                else {
+                    perror("Error while reading file content from socket");
+                    exit(1);
+                }
+            }
+            else if (bytesCurrRead == 0) {
+                fprintf(stderr, "Error while reading file content from socket, continuing to next connection\n");
+                close(connfd);
+                connfd = -1;
+                nextConnectionFlag = 1;
+                break;
+            }
             bytesRead += bytesCurrRead;
         }
-        if (bytesCurrRead < 0 && errno != EINTR) {
-            if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
-                perror("Error while reading file content from socket, continuing to next connection");
-                close(connfd);
-                connfd = -1;
-                continue;
-            }
-            else {
-                perror("Error while reading file content from socket");
-                exit(1);
-            }
-        }
-        else { // bytesCurrRead = 0
-            if (bytesRead != fileSize) {
-                perror("Error while reading file content from socket, continuing to next connection");
-                close(connfd);
-                connfd = -1;
-                continue;
-            }
+        
+        if (nextConnectionFlag == 1) {
+            nextConnectionFlag = 0;
+            continue;
         }
 
         // Calculating printable characters number
@@ -208,29 +225,31 @@ int main(int argc, char *argv[]) {
         networkPrintableCounter = htonl(printableCounter);
         bytesWritten = 0;
         bytesCurrWrite = 1;
-        while (bytesCurrWrite > 0) {
+        while (bytesWritten < 4) {// TODO
             bytesCurrWrite = write(connfd, (&networkPrintableCounter)+bytesWritten, 4-bytesWritten);
             bytesWritten += bytesCurrWrite;
+            if (bytesCurrWrite < 0) {
+                if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
+                    perror("Error while writing count to socket, continuing to next connection");
+                    close(connfd);
+                    connfd = -1;
+                    nextConnectionFlag = 1;
+                    break;
+                }
+                else if (errno == EINTR) {
+                    continue;
+                }
+                else {
+                    perror("Error while writing count to socket");
+                    exit(1);
+                }
+            }
+            bytesWritten += bytesCurrWrite;
         }
-        if (bytesCurrWrite < 0 && errno != EINTR) {
-            if (errno == ETIMEDOUT || errno == ECONNRESET || errno == EPIPE) {
-                perror("Error while writing counter to socket, continuing to next connection");
-                close(connfd);
-                connfd = -1;
-                continue;
-            }
-            else {
-                perror("Error while writing counter to socket");
-                exit(1);
-            }
-        }
-        else { // bytesCurrWrite = 0
-            if (bytesWritten != 4) {
-                perror("Error while writing counter to socket, continuing to next connection");
-                close(connfd);
-                connfd = -1;
-                continue;
-            }
+        
+        if (nextConnectionFlag == 1) {
+            nextConnectionFlag = 0;
+            continue;
         }
 
         // Updating pcc_total

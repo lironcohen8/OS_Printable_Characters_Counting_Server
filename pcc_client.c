@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
         bytesCurrWrite = write(sockfd, (&networkFileSize)+bytesWritten, 4-bytesWritten);
         bytesWritten += bytesCurrWrite;
     }
-    if (bytesCurrWrite < 0 || bytesWritten != 4) {
+    if (bytesCurrWrite < 0 || bytesWritten != 4) { // TODO
         perror("Couldn't write file size to socket");
         exit(1);
     }
